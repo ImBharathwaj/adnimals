@@ -1,0 +1,6 @@
+project/*
+target/*
+target/scala-3.*
+target/streams/*
+*.iml
+.idea/
