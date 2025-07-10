@@ -1,4 +1,4 @@
-## Module 01 is added
+## Module 02 is added
 
 ### 11 Jul, 2025
 
