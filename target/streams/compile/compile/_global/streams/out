@@ -1,9 +1,0 @@
-[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E045] Cyclic Error: /home/bharathwaj/IdeaProjects/untitled/src/main/scala/com/adnimals/server/Main.scala:15:19 [0m[0m[0m
-[0m[[0m[31merror[0m] [0m[0m[31m15 |[0m  [33mval[0m [36mroutes[0m = [33mnew[0m routes.AdRoutes().routes[0m
-[0m[[0m[31merror[0m] [0m[0m[31m[31m   |[0m                   ^[0m[0m
-[0m[[0m[31merror[0m] [0m[0m[31m   |[0m                   Recursive [33mvalue[0m [35mroutes[0m needs type[0m
-[0m[[0m[31merror[0m] [0m[0m[31m   |[0m[0m
-[0m[[0m[31merror[0m] [0m[0m[31m   |[0m                    Run with -explain-cyclic for more details.[0m
-[0m[[0m[31merror[0m] [0m[0m[31m   |[0m[0m
-[0m[[0m[31merror[0m] [0m[0m[31m   |[0m longer explanation available when compiling with `-explain`[0m
-[0m[[0m[31merror[0m] [0m[0mone error found[0m
