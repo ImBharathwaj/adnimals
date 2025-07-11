@@ -1,3 +1,19 @@
+## Module 03, 04, 05 & 06 is added
+
+### 12 Jul, 2025
+
+### Added
+
+  - Expanded delivery engine to account for frequency rules
+  - Introduced frequency capping system
+  - Deletion of ads via DELETE /ads/:id
+  - Support for updating ads via PUT /ads/:id
+  - Enabled re-targeting and correction of ad metadata
+  - Improved ad model with optional creative fields and better field validation
+  - Ad delivery endpoint (GET /ad)
+  - Frequency capping
+  - Logging for ad delivery events
+
 ## Module 02 is added
 
 ### 11 Jul, 2025

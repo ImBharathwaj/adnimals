@@ -12,16 +12,17 @@ import com.adnimals.server.store.EventStore
 import io.circe.Encoder
 import io.circe.Decoder
 import io.circe.generic.semiauto._
-import com.github.pjfanning.pekkohttpcirce.FailFastCirceSupport._
 
 import java.time.Instant
 
 class AdRoutes {
 
   case class AdStats(adId: String, impressions: Int, clicks: Int)
+
   case class StatsResponse(stats: List[AdStats])
 
   case class EventResponse(events: List[AdEvent])
+
   implicit val eventResponseEncoder: Encoder[EventResponse] = deriveEncoder
 
   implicit val adEventEncoder: Encoder[com.adnimals.server.model.AdEvent] = deriveEncoder
@@ -31,68 +32,88 @@ class AdRoutes {
   implicit val adStatsEncoder: Encoder[AdStats] = deriveEncoder
   implicit val statsResponseEncoder: Encoder[StatsResponse] = deriveEncoder
 
-  // Schema of advertisement
-  //    private val ads: List[Ad] = List(
-  //      Ad("1", "https://cdn.example.com/ad1.jpg", "https://click.example.com/1", "home_top", Map("geo" -> "IN")),
-  //      Ad("2", "https://cdn.example.com/ad2.jpg", "https://click.example.com/2", "home_top", Map("geo" -> "US")),
-  //      Ad("3", "https://cdn.example.com/ad3.jpg", "https://click.example.com/3", "sidebar", Map("geo" -> "IN"))
-  //    )
-
   val routes: Route =
-    concat ( path("health") {
-      get {
-        parameter("slot_id", "geo".?) { (slotId, geo) =>
-          val maybeAd = AdStore
-            .list()
-            .find(
-              ad =>
-                ad.slotId == slotId &&
-                  geo.forall(g => ad.targeting.get("geo").contains(g))
-            )
+    concat(
 
-          maybeAd match {
-            case Some(ad) => complete(ad)
-            case None => complete(404 -> "No ad found")
+      // Health + greeting
+      pathSingleSlash {
+        get {
+          complete("👋 Welcome to Adnimals Delivery API")
+        }
+      },
+
+      // Ad delivery endpoint with targeting
+      path("ad") {
+        get {
+          parameters("slot_id", "geo".?, "device".?, "userId".?) { (slotId, geo, device, userId) =>
+            val context = Map(
+              "geo" -> geo,
+              "device" -> device,
+              "userId" -> userId
+            ).collect { case (k, Some(v)) => k -> v }
+
+            val maybeAd = AdStore.getBestMatch(slotId, context)
+
+            maybeAd match {
+              case Some(ad) =>
+                val now = Instant.now().getEpochSecond
+                println(s"[Delivery] Ad ${ad.id} served for slot=$slotId geo=${geo.getOrElse("N/A")} user=${userId.getOrElse("anon")} at $now")
+                complete(ad)
+              case None =>
+                complete(StatusCodes.NotFound, "No eligible ad available (possibly due to frequency cap).")
+            }
           }
         }
-      }
-    },
+      },
+
+      // List all ads (admin)
+      path("admin" / "ads") {
+        get {
+          complete(AdStore.list())
+        }
+      },
+
+      // Create ad
       path("ads") {
-        post{
+        post {
           entity(as[Ad]) {
             ad => val createdAd = AdStore.create(ad)
               complete(201 -> createdAd)
           }
-        }
-      },
-      path("ads"){
-        get{
-          complete(AdStore.list())
-        }
-      },
-      path("ads" / Segment){ id =>
-        delete {
-          val removed = AdStore.delete(id)
-          if (removed) complete(200 -> s"Deleted ad $id")
-          else complete(404 -> s"Ad $id not found")
-        }
-      },
-      path("event") {
-        post {
-          entity(as[AdEvent]) { event =>
-            val stamped = event.copy(
-              timestamp = if (event.timestamp == 0) Instant.now().getEpochSecond else event.timestamp
-            )
-            EventStore.log(stamped)
-            complete(s"Event logged for ad: ${event.adId}")
+        } ~
+          get {
+            complete(AdStore.list())
           }
+      },
+
+      // Delete ad by ID
+      path("ads" / Segment) { adId =>
+        delete {
+          val deleted = AdStore.delete(adId)
+          if (deleted) complete("Ad deleted")
+          else complete(404 -> "Ad not found")
         }
       },
-      path("events") {
+
+      // Create event
+      post {
+        entity(as[AdEvent]) { event =>
+          val stamped = event.copy(
+            timestamp = if (event.timestamp == 0) Instant.now().getEpochSecond else event.timestamp
+          )
+          EventStore.log(stamped)
+          complete(s"Event logged for ad: ${event.adId}")
+        }
+      },
+
+      // List events
+      path("admin" / "events") {
         get {
           complete(EventResponse(EventStore.list()))
         }
       },
+
+      // Basic stats
       path("stats") {
         get {
           val grouped = EventStore.list().groupBy(_.adId)
@@ -106,6 +127,5 @@ class AdRoutes {
           complete(StatsResponse(stats))
         }
       }
-
     )
 }
