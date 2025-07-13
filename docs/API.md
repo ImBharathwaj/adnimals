@@ -1,12 +1,12 @@
-## Adnimals API Documentation
+## 📘 Adnimals API Documentation
 
 ### Version: `v0.1.0`
 
-### Status: Live (local)
+### Status: ✅ Live (local)
 
 ---
 
-## Table of Contents
+## 🛍 Table of Contents
 
 * [GET /ad](#get-ad)
 * [POST /event](#post-event)
@@ -17,7 +17,7 @@
 
 ## 🔹 GET `/ad`
 
-### Description:
+### 📌 Description:
 
 Fetch an ad based on `slot_id` and optional `geo`.
 
@@ -25,16 +25,16 @@ Fetch an ad based on `slot_id` and optional `geo`.
 
 | Param     | Type     | Required | Description                         |
 | --------- | -------- | -------- | ----------------------------------- |
-| `slot_id` | `string` | yes    | Ad placement identifier             |
-| `geo`     | `string` | no     | ISO country code (`in`, `us`, etc.) |
+| `slot_id` | `string` | ✅ yes    | Ad placement identifier             |
+| `geo`     | `string` | ❌ no     | ISO country code (`in`, `us`, etc.) |
 
-### Sample Request:
+### ✅ Sample Request:
 
 ```
 GET /ad?slot_id=home_top&geo=in
 ```
 
-### Sample Response:
+### ✅ Sample Response:
 
 ```json
 {
@@ -53,20 +53,20 @@ GET /ad?slot_id=home_top&geo=in
 
 ## 🔸 POST `/event`
 
-### Description:
+### 📈 Description:
 
 Track an ad interaction (click, impression).
 
-### JSON Body:
+### 📄 JSON Body:
 
 | Field       | Type            | Required | Description                      |
 | ----------- | --------------- | -------- | -------------------------------- |
-| `adId`      | `string`        | yes    | The ad that was shown/clicked    |
-| `eventType` | `string`        | yes    | One of `impression`, `click`     |
-| `timestamp` | `number (unix)` | yes    | Unix timestamp in seconds        |
-| `metadata`  | `object (map)`  | no     | Extra info: userId, device, etc. |
+| `adId`      | `string`        | ✅ yes    | The ad that was shown/clicked    |
+| `eventType` | `string`        | ✅ yes    | One of `impression`, `click`     |
+| `timestamp` | `number (unix)` | ✅ yes    | Unix timestamp in seconds        |
+| `metadata`  | `object (map)`  | ❌ no     | Extra info: userId, device, etc. |
 
-### Sample Request:
+### ✅ Sample Request:
 
 ```json
 {
@@ -80,7 +80,7 @@ Track an ad interaction (click, impression).
 }
 ```
 
-### Response:
+### ✅ Response:
 
 ```json
 {
@@ -90,7 +90,7 @@ Track an ad interaction (click, impression).
 
 ---
 
-## Example Workflow
+## 🔁 Example Workflow
 
 1. App calls `GET /ad?slot_id=home_top&geo=in`
 2. Server returns a matching ad

@@ -20,3 +20,12 @@ lazy val root = (project in file("."))
       "org.scalatest" %% "scalatest" % "3.2.17" % Test
     )
   )
+
+val CatsEffectVersion = "3.5.3"
+
+libraryDependencies ++= Seq(
+  "org.typelevel" %% "cats-effect"         % CatsEffectVersion,
+  "dev.profunktor" %% "redis4cats-effects" % "1.5.0",
+  "dev.profunktor" %% "redis4cats-log4cats" % "1.5.0",
+  "org.typelevel" %% "log4cats-slf4j"      % "2.6.0"
+)

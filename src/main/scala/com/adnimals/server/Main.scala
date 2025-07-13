@@ -1,32 +1,33 @@
 package com.adnimals.server
 
-import org.apache.pekko.actor.ActorSystem
-import org.apache.pekko.http.scaladsl.Http
-import org.apache.pekko.stream.Materializer
+import cats.effect.{IO, IOApp}
+import com.adnimals.server.core.RedisClient
+import com.adnimals.server.store.RedisAdStore
 import com.adnimals.server.routes.AdRoutes
-
+import org.apache.pekko.http.scaladsl.Http
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
 import scala.concurrent.ExecutionContextExecutor
-import scala.util.{Failure, Success}
 
-object Main extends App {
-  implicit val system: ActorSystem = ActorSystem("AdnimalSystem")
-  implicit val materializer: Materializer = Materializer(system)
-  implicit val ec: ExecutionContextExecutor = system.dispatcher
+object Main extends IOApp.Simple {
 
-  val routes = new AdRoutes().routes
+  override def run: IO[Unit] = {
+    implicit val system: ActorSystem = ActorSystem("adnimals-system")
+    implicit val mat: Materializer = Materializer(system)
+    implicit val ec: ExecutionContextExecutor = system.dispatcher
 
-  val bindingFuture = Http().newServerAt("0.0.0.0", 8080).bind(routes)
+    RedisClient.make[IO].use { redis =>
+      val adStore = new RedisAdStore[IO](redis)
+      val adRoutes = new AdRoutes(adStore)
+      val allRoutes = adRoutes.routes
 
-  bindingFuture.onComplete {
-    case Success(_) =>
-      val ip = java.net.InetAddress.getLocalHost.getHostAddress
-      println(s"Server online at http://$ip:8080")
-    case Failure(ex) =>
-      println(s"Failed to bind HTTP endpoint, terminating system: $ex")
-      system.terminate()
+      for {
+        _ <- IO.println("✅ Redis connected.")
+        _ <- IO.fromFuture(IO(Http().newServerAt("0.0.0.0", 8080).bind(allRoutes)))
+        _ <- IO.never
+      } yield ()
+    }.handleErrorWith { error =>
+      IO.println(s"❌ Redis or server startup failed: ${error.getMessage}")
+    }
   }
 }
-
-//object Main extends App{
-//  println("Working!")
-//}
